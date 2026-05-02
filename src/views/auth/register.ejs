@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autenticación</title>
+  <style>
+    :root {
+      --bg: #080808;
+      --surface: rgba(17, 17, 17, 0.96);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f0f0f0;
+      --muted: #8c8c8c;
+      --label: #b9b9b9;
+      --accent: #a3e635;
+      --danger: #fda4af;
+      --radius: 12px;
+      --mono: 'IBM Plex Mono', 'Courier New', monospace;
+      --sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(163,230,53,0.08), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.04), transparent 24%),
+        var(--bg);
+    }
+
+    .auth-root {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px 18px;
+    }
+
+    .auth-shell {
+      width: min(100%, 470px);
+    }
+
+    .tab-bar {
+      display: flex;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.025);
+      margin-bottom: 16px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: #111;
+      background: var(--accent);
+    }
+
+    .panel {
+      display: none;
+      animation: fadeUp 0.28s ease both;
+    }
+
+    .panel.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0 0 8px;
+      color: #f3f3f3;
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .copy {
+      margin: 0 0 18px;
+      color: #a8a8a8;
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 34ch;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(20,20,20,0.96), rgba(12,12,12,0.96));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    }
+
+    .field { margin-bottom: 18px; }
+    .field-last { margin-bottom: 18px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .date-field { display: flex; gap: 8px; align-items: stretch; }
+    .date-field .input { flex: 1; }
+    .date-btn {
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: #111111;
+      color: #cfcfcf;
+      border-radius: 8px;
+      padding: 0 12px;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .date-btn:hover { border-color: rgba(163,230,53,0.7); color: #f3f3f3; }
+    /* Password strength and toggle */
+    .pw-wrap { position: relative; }
+    .pw-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: #cfcfcf; cursor: pointer; font-size: 16px; }
+    .pw-meter { height: 6px; background: #0b0b0b; border-radius: 6px; overflow: hidden; margin-top:8px; }
+    .pw-fill { height:100%; width:0%; background: linear-gradient(90deg,#ff6b6b,#ffd166,#8cff7f); transition: width 180ms ease; }
+    .pw-hint { font-family: var(--mono); font-size: 12px; color: #9b9b9b; margin-top:6px; }
+
+    .label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--label);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .input {
+      width: 100%;
+      background: #111111;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 8px;
+      color: #f1f1f1;
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    }
+
+    .input::placeholder { color: #7a7a7a; }
+    .input:focus {
+      border-color: rgba(163,230,53,0.7);
+      background: #141414;
+      box-shadow: 0 0 0 3px rgba(163,230,53,0.08);
+    }
+
+    .btn-primary {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      background: var(--accent);
+      color: #0a0a0a;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+
+    .alert,
+    .ok {
+      display: none;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .alert {
+      border: 1px solid rgba(239,68,68,0.2);
+      background: rgba(239,68,68,0.08);
+      color: var(--danger);
+    }
+
+    .ok {
+      border: 1px solid rgba(163,230,53,0.22);
+      background: rgba(163,230,53,0.08);
+      color: #c7f27b;
+    }
+
+    .alert.show,
+    .ok.show { display: block; }
+
+    .footer {
+      margin: 14px 0 0;
+      text-align: center;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    @media (max-width: 640px) {
+      .card { padding: 20px; }
+      .title { font-size: 24px; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="auth-root">
+    <div class="auth-shell">
+      <div class="tab-bar">
+        <button class="tab-btn" onclick="location.href='/signIn'">Iniciar sesión</button>
+        <button class="tab-btn active">Registrarse</button>
+      </div>
+
+      <section class="panel active">
+        <p class="eyebrow">Autenticación</p>
+        <h1 class="title">Crear cuenta</h1>
+        <p class="copy">Registra tu cuenta con una interfaz ligera y oscura, pensada para cargar rápido.</p>
+
+        <div class="card">
+          <div class="alert" id="reg-err"></div>
+          <div class="ok" id="reg-ok"></div>
+
+          <div class="field">
+            <div class="grid-2">
+              <div>
+                <label class="label" for="r-name">Nombre</label>
+                <input class="input" id="r-name" placeholder="Juan" autocomplete="given-name">
+              </div>
+              <div>
+                <label class="label" for="r-last">Apellido</label>
+                <input class="input" id="r-last" placeholder="Pérez" autocomplete="family-name">
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="grid-2">
+              <div>
+                <label class="label" for="r-phone">Teléfono</label>
+                <input class="input" id="r-phone" placeholder="+51 999 000 000" autocomplete="tel">
+              </div>
+              <div>
+                <label class="label" for="r-birth">Nacimiento</label>
+                <div class="date-field">
+                  <input class="input" type="date" id="r-birth">
+                  <button class="date-btn" type="button" onclick="openDatePicker('r-birth')">📅</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="r-email">Email</label>
+            <input class="input" type="email" id="r-email" placeholder="usuario@email.com" autocomplete="email">
+          </div>
+
+          <div class="field field-last">
+            <label class="label" for="r-pass">Contraseña</label>
+            <div class="pw-wrap">
+              <input class="input" type="password" id="r-pass" placeholder="••••••••" autocomplete="new-password" oninput="updatePwMeter('r-pass','r-pwfill','r-pwhint')">
+              <button class="pw-toggle" type="button" onclick="togglePw('r-pass', this)">👁</button>
+            </div>
+            <div class="pw-meter" aria-hidden><div id="r-pwfill" class="pw-fill"></div></div>
+            <div id="r-pwhint" class="pw-hint"></div>
+          </div>
+
+          <button class="btn-primary" onclick="doRegister()">Registrarse</button>
+        </div>
+
+        <p class="footer">Si ya tienes cuenta, vuelve a iniciar sesión desde la otra pestaña.</p>
+      </section>
+    </div>
+  </main>
+
+    <script>
+      function openDatePicker(id) {
+        const input = document.getElementById(id);
+        if (input && typeof input.showPicker === 'function') {
+          input.showPicker();
+        } else if (input) {
+          input.focus();
+        }
+      }
+
+      function togglePw(id, btn) {
+        const i = document.getElementById(id);
+        if (!i) return;
+        if (i.type === 'password') { i.type = 'text'; btn.textContent = '🙈'; }
+        else { i.type = 'password'; btn.textContent = '👁'; }
+      }
+
+      function updatePwMeter(inputId, fillId, hintId) {
+        const v = document.getElementById(inputId)?.value || '';
+        const score = passwordScore(v);
+        const fill = document.getElementById(fillId);
+        const hint = document.getElementById(hintId);
+        if (fill) fill.style.width = Math.min(100, score * 25) + '%';
+        if (hint) {
+          if (!v) hint.textContent = '';
+          else if (score < 2) hint.textContent = 'Débil — añade mayúsculas, números y símbolos';
+          else if (score === 2) hint.textContent = 'Aceptable — añade más longitud o símbolos';
+          else if (score === 3) hint.textContent = 'Fuerte — buena contraseña';
+          else hint.textContent = 'Muy fuerte';
+        }
+      }
+
+      function passwordScore(pw) {
+        if (!pw) return 0;
+        let score = 0;
+        if (pw.length >= 8) score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        return score;
+      }
+    </script>
+  <script>
+    function showAlert(id, msg) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    async function doRegister() {
+      const body = {
+        name: document.getElementById('r-name').value.trim(),
+        lastName: document.getElementById('r-last').value.trim(),
+        phoneNumber: document.getElementById('r-phone').value.trim(),
+        birthdate: document.getElementById('r-birth').value,
+        email: document.getElementById('r-email').value.trim(),
+        password: document.getElementById('r-pass').value
+      };
+
+      const res = await fetch('/api/auth/signUp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) return showAlert('reg-err', data.message || 'No se pudo registrar');
+
+      const ok = document.getElementById('reg-ok');
+      ok.textContent = 'Cuenta creada. Ya puedes iniciar sesión.';
+      ok.classList.add('show');
+      setTimeout(() => { window.location.href = '/signIn'; }, 1200);
+    }
+  </script>
+</body>
+</html>

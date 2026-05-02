@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autenticación</title>
+  <style>
+    :root {
+      --bg: #080808;
+      --surface: rgba(17, 17, 17, 0.92);
+      --surface-2: rgba(255, 255, 255, 0.03);
+      --border: #1d1d1d;
+      --border-soft: rgba(255, 255, 255, 0.08);
+      --text: #d7d7d7;
+      --muted: #757575;
+      --accent: #a3e635;
+      --accent-soft: rgba(163, 230, 53, 0.12);
+      --danger: #ef4444;
+      --radius: 10px;
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(163,230,53,0.08), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.04), transparent 24%),
+        var(--bg);
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { opacity: 0.8; }
+
+    .auth-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px 18px;
+    }
+
+    .auth-card-shell {
+      width: min(100%, 470px);
+    }
+
+    .auth-tabs {
+      display: inline-flex;
+      width: 100%;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface-2);
+      backdrop-filter: blur(10px);
+    }
+
+    .auth-tab {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+
+    .auth-tab.active {
+      color: #111;
+      background: var(--accent);
+    }
+
+    .auth-panel {
+      display: none;
+      animation: fadeUp 0.28s ease both;
+    }
+
+    .auth-panel.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-eyebrow {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .auth-title {
+      margin: 0 0 24px;
+      color: #f3f3f3;
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .auth-card {
+      background: linear-gradient(180deg, rgba(20,20,20,0.96), rgba(12,12,12,0.96));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .auth-field { margin-bottom: 18px; }
+    .auth-field-last { margin-bottom: 18px; }
+    .auth-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .date-field { display: flex; gap: 8px; align-items: stretch; }
+    .date-field .form-control { flex: 1; }
+    .date-btn {
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: #111111;
+      color: #cfcfcf;
+      border-radius: 8px;
+      padding: 0 12px;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .date-btn:hover { border-color: rgba(163,230,53,0.7); color: #f3f3f3; }
+    /* Password strength and toggle */
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: transparent; border: none; color: #cfcfcf; cursor: pointer; font-size: 16px;
+    }
+    .pw-meter { height: 6px; background: #0b0b0b; border-radius: 6px; overflow: hidden; margin-top:8px; }
+    .pw-fill { height:100%; width:0%; background: linear-gradient(90deg,#ff6b6b,#ffd166,#8cff7f); transition: width 180ms ease; }
+    .pw-hint { font-family: var(--mono); font-size: 12px; color: #9b9b9b; margin-top:6px; }
+
+    .auth-label {
+      display: block;
+      margin-bottom: 7px;
+      color: #b9b9b9;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .form-control {
+      width: 100%;
+      background: #111111;
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 8px;
+      color: #f1f1f1;
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 13px 14px;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .form-control::placeholder { color: #7a7a7a; }
+    .form-control:focus {
+      border-color: rgba(163,230,53,0.7);
+      background: #141414;
+      box-shadow: 0 0 0 3px rgba(163,230,53,0.08);
+    }
+
+    .btn-primary {
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      background: var(--accent);
+      color: #0a0a0a;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .auth-alert,
+    .auth-ok {
+      display: none;
+      margin-bottom: 14px;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .auth-alert {
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      background: rgba(239, 68, 68, 0.08);
+      color: #fda4af;
+    }
+
+    .auth-ok {
+      border: 1px solid rgba(163, 230, 53, 0.22);
+      background: rgba(163, 230, 53, 0.08);
+      color: #c7f27b;
+    }
+
+    .auth-alert.show,
+    .auth-ok.show { display: block; }
+
+    .auth-footer {
+      margin: 14px 0 0;
+      text-align: center;
+      color: #8a8a8a;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+    }
+
+    .auth-copy {
+      margin-bottom: 16px;
+      color: #a8a8a8;
+      font-size: 13px;
+      line-height: 1.6;
+      max-width: 34ch;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0 14px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    @media (max-width: 640px) {
+      .auth-card { padding: 20px; }
+      .auth-title { font-size: 24px; }
+      .auth-grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="auth-shell">
+    <div class="auth-card-shell">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuth('login')">Iniciar sesión</button>
+        <button class="auth-tab" onclick="switchAuth('register')">Registrarse</button>
+      </div>
+
+      <section class="auth-panel active" id="auth-login">
+        <p class="auth-eyebrow">Autenticación</p>
+        <h1 class="auth-title">Bienvenido de vuelta</h1>
+        <p class="auth-copy">Accede con tu correo y contraseña para entrar a tu panel.</p>
+
+        <div class="auth-card">
+          <div class="auth-alert" id="login-err"></div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="li-email">Email</label>
+            <input class="form-control" type="email" id="li-email" placeholder="usuario@email.com" autocomplete="email">
+          </div>
+
+          <div class="auth-field auth-field-last">
+            <label class="auth-label" for="li-pass">Contraseña</label>
+            <div class="pw-wrap">
+              <input class="form-control" type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password">
+              <button class="pw-toggle" type="button" onclick="togglePw('li-pass', this)">👁</button>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="li-btn" onclick="doLogin()">Ingresar</button>
+        </div>
+
+        <p class="auth-footer">Sin cuenta todavía, cambia a la pestaña de registro.</p>
+      </section>
+
+      <section class="auth-panel" id="auth-register">
+        <p class="auth-eyebrow">Autenticación</p>
+        <h1 class="auth-title">Crear cuenta</h1>
+        <p class="auth-copy">Registra tu cuenta en pocos pasos con una interfaz limpia y directa.</p>
+
+        <div class="auth-card">
+          <div class="auth-alert" id="reg-err"></div>
+          <div class="auth-ok" id="reg-ok"></div>
+
+          <div class="auth-field">
+            <div class="auth-grid-2">
+              <div>
+                <label class="auth-label" for="r-name">Nombre</label>
+                <input class="form-control" id="r-name" placeholder="Juan" autocomplete="given-name">
+              </div>
+              <div>
+                <label class="auth-label" for="r-last">Apellido</label>
+                <input class="form-control" id="r-last" placeholder="Pérez" autocomplete="family-name">
+              </div>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <div class="auth-grid-2">
+              <div>
+                <label class="auth-label" for="r-phone">Teléfono</label>
+                <input class="form-control" id="r-phone" placeholder="+51 999 000 000" autocomplete="tel">
+              </div>
+              <div>
+                <label class="auth-label" for="r-birth">Nacimiento</label>
+                <div class="date-field">
+                  <input class="form-control" type="date" id="r-birth">
+                  <button class="date-btn" type="button" onclick="openDatePicker('r-birth')">📅</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="r-email">Email</label>
+            <input class="form-control" type="email" id="r-email" placeholder="usuario@email.com" autocomplete="email">
+          </div>
+
+          <div class="auth-field auth-field-last">
+            <label class="auth-label" for="r-pass">Contraseña</label>
+            <div class="pw-wrap">
+              <input class="form-control" type="password" id="r-pass" placeholder="••••••••" autocomplete="new-password" oninput="updatePwMeter('r-pass','r-pwfill','r-pwhint')">
+              <button class="pw-toggle" type="button" onclick="togglePw('r-pass', this)">👁</button>
+            </div>
+            <div class="pw-meter" aria-hidden><div id="r-pwfill" class="pw-fill"></div></div>
+            <div id="r-pwhint" class="pw-hint"></div>
+          </div>
+
+          <button class="btn-primary" id="reg-btn" onclick="doRegister()">Registrarse</button>
+        </div>
+
+        <p class="auth-footer">Si ya tienes acceso, vuelve a iniciar sesión desde la pestaña superior.</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    function switchAuth(tab) {
+      document.querySelectorAll('.auth-tab').forEach((button, index) => {
+        button.classList.toggle('active', (tab === 'login' && index === 0) || (tab === 'register' && index === 1));
+      });
+      document.querySelectorAll('.auth-panel').forEach(panel => panel.classList.remove('active'));
+      const el = document.getElementById('auth-' + tab);
+      if (el) el.classList.add('active');
+    }
+
+    function openDatePicker(id) {
+      const input = document.getElementById(id);
+      if (input && typeof input.showPicker === 'function') input.showPicker();
+      else if (input) input.focus();
+    }
+
+    function togglePw(id, btn) {
+      const i = document.getElementById(id);
+      if (!i) return;
+      if (i.type === 'password') { i.type = 'text'; if (btn) btn.textContent = '🙈'; }
+      else { i.type = 'password'; if (btn) btn.textContent = '👁'; }
+    }
+
+    function updatePwMeter(inputId, fillId, hintId) {
+      const v = document.getElementById(inputId)?.value || '';
+      const score = passwordScore(v);
+      const fill = document.getElementById(fillId);
+      const hint = document.getElementById(hintId);
+      if (fill) fill.style.width = Math.min(100, score * 25) + '%';
+      if (hint) {
+        if (!v) hint.textContent = '';
+        else if (score < 2) hint.textContent = 'Débil — añade mayúsculas, números y símbolos';
+        else if (score === 2) hint.textContent = 'Aceptable — añade más longitud o símbolos';
+        else if (score === 3) hint.textContent = 'Fuerte — buena contraseña';
+        else hint.textContent = 'Muy fuerte';
+      }
+    }
+
+    function passwordScore(pw) {
+      if (!pw) return 0;
+      let score = 0;
+      if (pw.length >= 8) score++;
+      if (/[A-Z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+      return score;
+    }
+
+    function showErr(id, msg) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    function showOk(id, msg) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    async function doLogin() {
+      const email = document.getElementById('li-email').value.trim();
+      const password = document.getElementById('li-pass').value;
+
+      if (!email || !password) return showErr('login-err', 'Completa todos los campos.');
+
+      const res = await fetch('/api/auth/signIn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) return showErr('login-err', data.message);
+
+      sessionStorage.setItem('token', data.token);
+      const roles = Array.isArray(data.roles) ? data.roles : [];
+      sessionStorage.setItem('roles', JSON.stringify(roles));
+
+      window.location.href = roles.includes('admin') ? '/dashboard/admin' : '/dashboard/user';
+    }
+
+    async function doRegister() {
+      const body = {
+        name: document.getElementById('r-name').value,
+        lastName: document.getElementById('r-last').value,
+        phoneNumber: document.getElementById('r-phone').value,
+        birthdate: document.getElementById('r-birth').value,
+        email: document.getElementById('r-email').value,
+        password: document.getElementById('r-pass').value
+      };
+
+      const res = await fetch('/api/auth/signUp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) return showErr('reg-err', data.message);
+
+      showOk('reg-ok', 'Cuenta creada. Ya puedes iniciar sesión.');
+      setTimeout(() => switchAuth('login'), 1200);
+    }
+  </script>
+</body>
+</html>

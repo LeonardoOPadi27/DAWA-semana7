@@ -1,0 +1,508 @@
+<style>
+  .admin-welcome {
+    background: linear-gradient(135deg, rgba(163,230,53,0.15), transparent);
+    border: 1px solid rgba(163,230,53,0.25);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .welcome-text h3 {
+    font-family: var(--mono);
+    font-size: 18px;
+    color: #e8e8e8;
+    margin-bottom: 4px;
+  }
+
+  .welcome-text p {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 0.05em;
+  }
+
+  .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(163,230,53,0.15);
+    border: 1px solid rgba(163,230,53,0.4);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .admin-badge::before {
+    content: '◆';
+    font-size: 10px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: linear-gradient(180deg, rgba(20,20,20,0.8), rgba(12,12,12,0.8));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .stat-card:hover {
+    border-color: rgba(163,230,53,0.3);
+    transform: translateY(-2px);
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
+  }
+
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 24px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .stat-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #666;
+  }
+
+  .users-section {
+    background: linear-gradient(180deg, rgba(20,20,20,0.96), rgba(12,12,12,0.96));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .search-box {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 14px;
+    width: 280px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-box:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(163,230,53,0.08);
+  }
+
+  .search-box::placeholder {
+    color: var(--dim);
+  }
+
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .users-table th {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+
+  .users-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    vertical-align: middle;
+  }
+
+  .users-table tbody tr:hover {
+    background: rgba(255,255,255,0.02);
+  }
+
+  .user-name {
+    color: #e8e8e8;
+    font-weight: 500;
+  }
+
+  .user-email,
+  .user-date,
+  .user-phone {
+    color: var(--dim);
+    font-size: 12px;
+  }
+
+  .badge-admin,
+  .badge-user {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .badge-admin {
+    background: rgba(163,230,53,0.15);
+    border: 1px solid rgba(163,230,53,0.3);
+    color: var(--accent);
+  }
+
+  .badge-user {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--dim);
+  }
+
+  .info-btn {
+    background: transparent;
+    border: 1px solid rgba(163,230,53,0.25);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s, border-color 0.2s;
+  }
+
+  .info-btn:hover {
+    background: rgba(163,230,53,0.08);
+    border-color: rgba(163,230,53,0.45);
+    transform: translateY(-1px);
+  }
+
+  .users-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .user-detail {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .user-detail.is-open {
+    display: block;
+  }
+
+  .user-detail-card {
+    background: linear-gradient(180deg, rgba(20,20,20,0.96), rgba(12,12,12,0.96));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .user-detail-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .user-detail-title {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: #e8e8e8;
+    margin-bottom: 6px;
+  }
+
+  .user-detail-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .user-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .detail-item {
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .detail-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+
+  .detail-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: #e8e8e8;
+    word-break: break-word;
+  }
+
+  @media (max-width: 768px) {
+    .admin-welcome,
+    .section-header,
+    .user-detail-top {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .search-box {
+      width: 100%;
+    }
+
+    .user-detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<p class="page-label">Panel de administración</p>
+<h2 class="page-title">Dashboard Admin</h2>
+
+<!-- Welcome Banner -->
+<div class="admin-welcome">
+  <div class="welcome-text">
+    <h3>Panel de Administración</h3>
+    <p>Gestiona usuarios y supervisa la actividad de tu plataforma</p>
+  </div>
+  <div class="admin-badge">Modo Admin</div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid" id="statsContainer">
+  <div class="stat-card">
+    <p class="stat-label">Usuarios totales</p>
+    <p class="stat-value" id="statTotal">—</p>
+    <p class="stat-meta">registrados en el sistema</p>
+  </div>
+  <div class="stat-card">
+    <p class="stat-label">Administradores</p>
+    <p class="stat-value" id="statAdmins">—</p>
+    <p class="stat-meta">con permisos admin</p>
+  </div>
+  <div class="stat-card">
+    <p class="stat-label">Usuarios regulares</p>
+    <p class="stat-value" id="statUsers">—</p>
+    <p class="stat-meta">con rol de usuario</p>
+  </div>
+  <div class="stat-card">
+    <p class="stat-label">Último registro</p>
+    <p class="stat-value" style="font-size:15px;" id="statLastUser">—</p>
+    <p class="stat-meta" id="statLastDate">—</p>
+  </div>
+</div>
+
+<!-- Users Section -->
+<div class="users-section">
+  <div class="section-header">
+    <p class="section-title">Lista de usuarios</p>
+    <input class="search-box" id="searchInput" placeholder="Buscar por nombre, email o rol..." oninput="filterTable()">
+  </div>
+
+  <div id="tableContainer">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Teléfono</th>
+          <th>Registro</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="usersBody">
+        <tr><td colspan="6" class="users-empty">Cargando usuarios...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="userDetail" class="user-detail"></div>
+</div>
+
+<script>
+const token = sessionStorage.getItem('token');
+if (!token) location.href = '/signIn';
+
+let allUsers = [];
+let selectedUserId = null;
+
+function getRoleNames(user) {
+  return (user.roles || []).map(role => {
+    if (typeof role === 'string') return role;
+    return role && role.name ? role.name : '';
+  }).filter(Boolean);
+}
+
+function formatDate(value) {
+  return value
+    ? new Date(value).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '—';
+}
+
+function showUserDetail(userId) {
+  const user = allUsers.find(item => String(item._id || item.id) === String(userId));
+  if (!user) return;
+
+  selectedUserId = userId;
+  const roles = getRoleNames(user);
+  const primaryRole = roles[0] || 'user';
+  const detail = document.getElementById('userDetail');
+
+  detail.classList.add('is-open');
+  detail.innerHTML =
+    '<div class="user-detail-card">' +
+      '<div class="user-detail-top">' +
+        '<div>' +
+          '<div class="user-detail-title">' + user.name + ' ' + user.lastName + '</div>' +
+          '<div class="user-detail-meta">Detalle del usuario</div>' +
+        '</div>' +
+        '<button class="info-btn" onclick="closeUserDetail()">Cerrar</button>' +
+      '</div>' +
+      '<div class="user-detail-grid">' +
+        '<div class="detail-item"><div class="detail-label">Email</div><div class="detail-value">' + user.email + '</div></div>' +
+        '<div class="detail-item"><div class="detail-label">Rol</div><div class="detail-value">' + primaryRole + '</div></div>' +
+        '<div class="detail-item"><div class="detail-label">Teléfono</div><div class="detail-value">' + (user.phoneNumber || '—') + '</div></div>' +
+        '<div class="detail-item"><div class="detail-label">Registro</div><div class="detail-value">' + formatDate(user.createdAt) + '</div></div>' +
+        '<div class="detail-item"><div class="detail-label">Fecha de nacimiento</div><div class="detail-value">' + formatDate(user.birthdate) + '</div></div>' +
+        '<div class="detail-item"><div class="detail-label">Dirección</div><div class="detail-value">' + (user.address || 'No especificada') + '</div></div>' +
+        '<div class="detail-item"><div class="detail-label">Roles</div><div class="detail-value">' + (roles.length ? roles.join(', ') : 'user') + '</div></div>' +
+        '<div class="detail-item"><div class="detail-label">ID</div><div class="detail-value">' + (user._id || user.id || '—') + '</div></div>' +
+      '</div>' +
+    '</div>';
+}
+
+function closeUserDetail() {
+  selectedUserId = null;
+  const detail = document.getElementById('userDetail');
+  detail.classList.remove('is-open');
+  detail.innerHTML = '';
+}
+
+async function loadUsers() {
+  try {
+    const res = await fetch('/api/users', { headers: { Authorization: 'Bearer ' + token } });
+    if (res.status === 401) return location.href = '/signIn';
+    if (res.status === 403) return location.href = '/403';
+
+    allUsers = await res.json();
+
+    const admins = allUsers.filter(user => getRoleNames(user).includes('admin')).length;
+    const users = allUsers.length - admins;
+    const last = [...allUsers].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+
+    document.getElementById('statTotal').textContent = allUsers.length;
+    document.getElementById('statAdmins').textContent = admins;
+    document.getElementById('statUsers').textContent = users;
+    document.getElementById('statLastUser').textContent = last ? (last.name + ' ' + last.lastName).substring(0, 24) : '—';
+    document.getElementById('statLastDate').textContent = last ? formatDate(last.createdAt) : '—';
+
+    renderTable(allUsers);
+    if (allUsers.length > 0) {
+      showUserDetail(selectedUserId || (allUsers[0]._id || allUsers[0].id));
+    }
+  } catch (err) {
+    document.getElementById('usersBody').innerHTML = '<tr><td colspan="6" class="users-empty" style="color:#ef4444;">Error: ' + err.message + '</td></tr>';
+  }
+}
+
+function renderTable(users) {
+  if (!users.length) {
+    document.getElementById('usersBody').innerHTML = '<tr><td colspan="6" class="users-empty">Sin resultados</td></tr>';
+    closeUserDetail();
+    return;
+  }
+
+  document.getElementById('usersBody').innerHTML = users.map(user => {
+    const roleNames = getRoleNames(user);
+    const primaryRole = roleNames[0] || 'user';
+    const isAdmin = roleNames.includes('admin');
+    const date = formatDate(user.createdAt);
+    const name = user.name + ' ' + user.lastName;
+    const badgeClass = isAdmin ? 'badge-admin' : 'badge-user';
+    const rowId = user._id || user.id;
+
+    return '<tr>' +
+      '<td><span class="user-name">' + name + '</span></td>' +
+      '<td><span class="user-email">' + user.email + '</span></td>' +
+      '<td><span class="' + badgeClass + '">' + primaryRole + '</span></td>' +
+      '<td><span class="user-phone">' + (user.phoneNumber || '—') + '</span></td>' +
+      '<td><span class="user-date">' + date + '</span></td>' +
+      '<td><button class="info-btn" onclick="showUserDetail(\'' + rowId + '\')">Ver info</button></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function filterTable() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = allUsers.filter(user => {
+    const roleNames = getRoleNames(user).join(' ');
+    return (user.name + ' ' + user.lastName + ' ' + user.email + ' ' + roleNames).toLowerCase().includes(query);
+  });
+
+  renderTable(filtered);
+}
+
+window.showUserDetail = showUserDetail;
+window.closeUserDetail = closeUserDetail;
+
+loadUsers();
+</script>

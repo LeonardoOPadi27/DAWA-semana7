@@ -1,0 +1,385 @@
+<style>
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    max-width: 780px;
+  }
+
+  .profile-avatar-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 16px;
+    text-align: center;
+    height: fit-content;
+    position: sticky;
+    top: 72px;
+  }
+
+  .profile-img {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    margin: 0 auto 14px;
+    display: block;
+    transition: border-color 0.2s;
+  }
+
+  .profile-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: #e8e8e8;
+    margin-bottom: 3px;
+  }
+
+  .profile-role {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 14px;
+  }
+
+  .profile-hint {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+
+  .form-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .form-section-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 16px;
+  }
+
+  .field-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 7px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .date-field {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .date-field .form-control {
+    flex: 1;
+  }
+
+  .date-btn {
+    flex: 0 0 auto;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: var(--surface);
+    color: #cfcfcf;
+    border-radius: var(--radius);
+    padding: 0 12px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .date-btn:hover {
+    border-color: var(--accent);
+    color: #f3f3f3;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .profile-alert {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: var(--radius);
+    color: #fca5a5;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 9px 12px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .profile-alert.show { display: block; }
+
+  .profile-ok {
+    background: rgba(163,230,53,0.07);
+    border: 1px solid rgba(163,230,53,0.2);
+    border-radius: var(--radius);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 9px 12px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  .profile-ok.show { display: block; }
+
+  .save-spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 1.5px solid rgba(10,10,10,0.3);
+    border-top-color: #0a0a0a;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 640px) {
+    .profile-grid { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .profile-avatar-card { position: static; }
+  }
+</style>
+
+<p class="page-label">Cuenta</p>
+<h2 class="page-title">Mi perfil</h2>
+
+<div class="profile-grid">
+
+  <!-- Avatar lateral -->
+  <div class="profile-avatar-card">
+    <img class="profile-img" id="avatarImg" src="" alt="Avatar">
+    <p class="profile-name" id="avatarName">—</p>
+    <p class="profile-role">Usuario</p>
+    <p class="profile-hint">La foto se actualiza al guardar una URL de imagen válida.</p>
+  </div>
+
+  <!-- Formulario -->
+  <div class="form-card">
+    <div class="profile-alert" id="p-err"></div>
+    <div class="profile-ok"    id="p-ok"></div>
+
+    <form id="profileForm">
+
+      <div class="form-section">
+        <p class="form-section-title">Información personal</p>
+
+        <div class="field grid-2">
+          <div>
+            <label class="field-label">Nombre</label>
+            <input class="form-control" name="name" placeholder="Juan">
+          </div>
+          <div>
+            <label class="field-label">Apellido</label>
+            <input class="form-control" name="lastName" placeholder="Pérez">
+          </div>
+        </div>
+
+        <div class="field grid-2">
+          <div>
+            <label class="field-label">Teléfono</label>
+            <input class="form-control" name="phoneNumber" placeholder="+51 999 000 000">
+          </div>
+          <div>
+            <label class="field-label">Nacimiento</label>
+            <div class="date-field">
+              <input class="form-control" type="date" name="birthdate" id="birthdateInput">
+              <button class="date-btn" type="button" onclick="openDatePicker('birthdateInput')">📅</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Dirección</label>
+          <input class="form-control" name="address" placeholder="Calle, ciudad">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <p class="form-section-title">Foto de perfil</p>
+        <div class="field">
+          <label class="field-label">URL de imagen</label>
+          <input class="form-control" name="url_profile" placeholder="https://..." oninput="previewAvatar(this.value)">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <p class="form-section-title">Seguridad</p>
+      <div class="field">
+        <label class="field-label">
+          Nueva contraseña
+          <span style="color:var(--dim);font-size:9px;text-transform:none;letter-spacing:0;">(dejar vacío para no cambiar)</span>
+        </label>
+        <div class="date-field" style="align-items:stretch;">
+          <div style="flex:1;">
+            <div class="pw-wrap">
+              <input class="form-control" type="password" name="password" id="p-password" placeholder="••••••••" oninput="updatePwMeter('p-password','p-pwfill','p-pwhint')">
+              <button class="date-btn pw-toggle" type="button" onclick="togglePw('p-password', this)">👁</button>
+            </div>
+            <div class="pw-meter" aria-hidden><div id="p-pwfill" class="pw-fill"></div></div>
+            <div id="p-pwhint" class="pw-hint" style="margin-top:6px;color:var(--dim);font-size:12px;"></div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <button class="btn btn-primary w-100" id="saveBtn" type="button" onclick="saveProfile()">
+        Guardar cambios
+      </button>
+
+    </form>
+  </div>
+
+</div>
+
+<script>
+const token = sessionStorage.getItem('token');
+if (!token) location.href = '/signIn';
+
+const DEFAULT_AVATAR = name =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1f1f1f&color=a3e635&size=80`;
+
+function previewAvatar(url) {
+  const img = document.getElementById('avatarImg');
+  if (url) {
+    const tmp = new Image();
+    tmp.onload  = () => { img.src = url; };
+    tmp.onerror = () => {};
+    tmp.src = url;
+  }
+}
+
+function openDatePicker(id) {
+  const input = document.getElementById(id);
+  if (input && typeof input.showPicker === 'function') {
+    input.showPicker();
+  } else if (input) {
+    input.focus();
+  }
+}
+
+function togglePw(id, btn) {
+  const i = document.getElementById(id);
+  if (!i) return;
+  if (i.type === 'password') { i.type = 'text'; btn.textContent = '🙈'; }
+  else { i.type = 'password'; btn.textContent = '👁'; }
+}
+
+function updatePwMeter(inputId, fillId, hintId) {
+  const v = document.getElementById(inputId)?.value || '';
+  const score = passwordScore(v);
+  const fill = document.getElementById(fillId);
+  const hint = document.getElementById(hintId);
+  if (fill) fill.style.width = Math.min(100, score * 25) + '%';
+  if (hint) {
+    if (!v) hint.textContent = '';
+    else if (score < 2) hint.textContent = 'Débil — añade mayúsculas, números y símbolos';
+    else if (score === 2) hint.textContent = 'Aceptable — añade más longitud o símbolos';
+    else if (score === 3) hint.textContent = 'Fuerte — buena contraseña';
+    else hint.textContent = 'Muy fuerte';
+  }
+}
+
+function passwordScore(pw) {
+  if (!pw) return 0;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return score;
+}
+
+function showMsg(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = el.className.replace(' show','');
+  void el.offsetWidth; el.classList.add('show');
+}
+
+async function loadProfile() {
+  const res = await fetch('/api/users/me', { headers: { Authorization: 'Bearer ' + token } });
+  if (res.status === 401) return logout();
+  const u = await res.json();
+  const f = document.getElementById('profileForm');
+
+  f.name.value        = u.name        || '';
+  f.lastName.value    = u.lastName    || '';
+  f.phoneNumber.value = u.phoneNumber || '';
+  f.birthdate.value   = u.birthdate?.split('T')[0] || '';
+  f.url_profile.value = u.url_profile || '';
+  f.address.value     = u.address     || '';
+
+  const fullName = `${u.name} ${u.lastName}`;
+  document.getElementById('avatarImg').src = u.url_profile || DEFAULT_AVATAR(fullName);
+  document.getElementById('avatarName').textContent = fullName;
+}
+
+async function saveProfile() {
+  const f = document.getElementById('profileForm');
+  const btn = document.getElementById('saveBtn');
+  const body = {
+    name:        f.name.value,
+    lastName:    f.lastName.value,
+    phoneNumber: f.phoneNumber.value,
+    birthdate:   f.birthdate.value,
+    url_profile: f.url_profile.value,
+    address:     f.address.value
+  };
+  if (f.password.value) body.password = f.password.value;
+
+  btn.innerHTML = '<span class="save-spinner"></span>Guardando...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/users/me', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) return showMsg('p-err', data.message || 'Error al guardar.');
+    showMsg('p-ok', 'Perfil actualizado correctamente.');
+    f.password.value = '';
+    loadProfile();
+  } catch(e) {
+    showMsg('p-err', 'Error de conexión.');
+  } finally {
+    btn.innerHTML = 'Guardar cambios';
+    btn.disabled = false;
+  }
+}
+
+loadProfile();
+</script>
